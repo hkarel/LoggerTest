@@ -1,0 +1,12 @@
+[submodule "qbs"]
+	path = qbs
+	url = https://github.com/hkarel/QbsExt.git
+[submodule "src/shared/shared"]
+	path = src/shared/shared
+	url = https://github.com/hkarel/SharedTools.git
+[submodule "src/spdlog/spdlog"]
+	path = src/spdlog/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "src/yaml"]
+	path = src/yaml
+	url = https://github.com/hkarel/yaml-cpp.git
