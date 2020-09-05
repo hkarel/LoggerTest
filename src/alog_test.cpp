@@ -3,9 +3,10 @@
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
 //
 
-#include "steady_timer.h"
-#include "logger/logger.h"
-#include "logger/format.h"
+#include "shared/steady_timer.h"
+#include "shared/utils.h"
+#include "shared/logger/logger.h"
+#include "shared/logger/format.h"
 #include <signal.h>
 
 #include <stdio.h>
@@ -22,18 +23,29 @@
 
 using namespace std;
 using namespace std::chrono;
-//using namespace alog;
+
+namespace  {
+int howmany = 1000000;
+int threads = 4;
+int iters = 5;
+bool format_func = true;
+const char* log_file = "/tmp/alog-async.log"; // SSD
+//const char* log_file = "/mnt/storage/Downloads/alog-async.log"; // HDD
+} // namespace
 
 void thread_fun(int howmany)
 {
-    for (int i = 0; i < howmany; i++)
+    for (int i = 0; i < howmany; ++i)
     {
         //logger->trace(u8"LWP{} [{}:{} LoggerTest] Hello logger: msg number {}", tid, "spdlog_test.cpp", __LINE__, i);
-        log_debug2_m << "Hello logger: msg number " << i;
+        if (format_func)
+            log_debug2_m << log_format("Hello logger: msg number %?", i);
+        else
+            log_debug2_m << "Hello logger: msg number " << i;
     }
 }
 
-void bench_mt(int howmany, int thread_count)
+void bench_mt(int howmany, int thread_count, double& delta)
 {
     using std::chrono::high_resolution_clock;
     vector<thread> threads;
@@ -54,18 +66,15 @@ void bench_mt(int howmany, int thread_count)
         t.join();
     };
 
-    auto delta = high_resolution_clock::now() - start;
-    auto delta_d = duration_cast<duration<double>>(delta).count();
+    auto dlt = high_resolution_clock::now() - start;
+    delta = duration_cast<duration<double>>(dlt).count();
+
     //spdlog::info("Elapsed: {} secs\t {:n}/sec", delta_d, int(howmany / delta_d));
-    log_info << log_format("Elapsed: %? secs; %?/sec", delta_d, int(howmany / delta_d));
+    log_info << log_format("Elapsed: %? secs; %?/sec", delta, int(howmany / delta));
 }
 
 int main(int argc, char* argv[])
 {
-    int howmany = 1000000;
-    int threads = 4;
-    int iters = 5;
-
     alog::logger().start();
     alog::logger().addSaverStdOut(alog::Level::Info, false);
 
@@ -80,22 +89,25 @@ int main(int argc, char* argv[])
             saver->addFilter(filter);
     }
 
-    log_info << "ALog test is running";
+    log_info << "ALog speed test is running";
     alog::logger().flush();
 
     log_info << log_format("-------------------------------------------------");
     log_info << log_format("Messages     : %?", howmany);
     log_info << log_format("Threads      : %?", threads);
     log_info << log_format("Total iters  : %?", iters);
+    log_info << log_format("Total iters  : %?", iters);
+    log_info << log_format("Use format   : %?", format_func);
     log_info << log_format("-------------------------------------------------");
 
+    std::vector<double> delta_times;
     for (int i = 0; i < iters; ++i)
     {
         // Создаем дефолтный сэйвер для логгера
         bool logContinue = false;
         alog::Level logLevel = alog::Level::Debug2;
         alog::SaverPtr saver {new alog::SaverFile("default",
-                                                  "/tmp/alog-async.log",
+                                                  log_file,
                                                   logLevel,
                                                   logContinue)};
 
@@ -108,13 +120,16 @@ int main(int argc, char* argv[])
 
         alog::logger().addSaver(saver);
 
-        bench_mt(howmany, threads);
+        double delta;
+        bench_mt(howmany, threads, delta);
+
+        delta_times.push_back(delta);
 
         alog::logger().flush(3);
         alog::logger().waitingFlush();
     }
 
-    alog::logger().start();
+    log_info << log_format("Average time: %? sec", utl::average(delta_times));
 
     log_info << "ALog test is stopped";
     alog::logger().flush();
