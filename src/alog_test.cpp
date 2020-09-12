@@ -25,7 +25,7 @@ using namespace std;
 using namespace std::chrono;
 
 namespace  {
-int howmany = 1000000;
+int howmany = 5000000;
 int threads = 4;
 int iters = 5;
 bool format_func = true;

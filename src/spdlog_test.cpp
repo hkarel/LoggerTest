@@ -30,7 +30,7 @@ using namespace spdlog::sinks;
 //using namespace utils;
 
 namespace {
-int howmany = 1000000;
+int howmany = 5000000;
 int queue_size = std::min(howmany + 2, 500000);
 int threads = 4;
 int iters = 5;
