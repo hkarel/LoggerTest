@@ -1,0 +1,60 @@
+import qbs
+import qbs.File
+import qbs.TextFile
+//import GccUtl
+//import QbsUtl
+
+Product {
+    name: "g3log"
+    targetName: "g3log"
+
+    type: "staticlibrary"
+    //destinationDirectory: "./lib"
+
+    Depends { name: "cpp" }
+
+    Probe {
+        id: productProbe
+
+        readonly property string projectBuildDirectory:  project.buildDirectory
+
+        configure: {
+            File.makePath(projectBuildDirectory + "/g3log");
+
+            var generated = new TextFile(projectBuildDirectory + "/g3log/generated_definitions.hpp" , TextFile.WriteOnly);
+            generated.write("// Dummy file, required for compatibility with CMAKE build system\n");
+            generated.close();
+        }
+    }
+
+    //cpp.archiverName: GccUtl.ar(cpp.toolchainPathPrefix)
+    cpp.defines: project.cppDefines.concat([
+        //"G3_LOG_FULL_FILENAME=1",
+        "G3LOG_DEBUG=DEBUG",
+    ])
+    cpp.cxxFlags: project.cxxFlags
+    cpp.cxxLanguageVersion: project.cxxLanguageVersion
+
+    property var exportIncludePaths: [
+        "./g3log/src",
+        "./g3log/src/g3log",
+        project.buildDirectory,
+    ]
+    cpp.includePaths: exportIncludePaths;
+
+    files: [
+        "g3log/src/g3log/*.hpp",
+        "g3log/src/*.cpp",
+        "g3log/src/*.hpp",
+    ]
+
+    excludeFiles: [
+        "g3log/src/crashhandler_windows.cpp",
+        "g3log/src/stacktrace_windows.cpp",
+    ]
+
+    Export {
+        Depends { name: "cpp" }
+        cpp.includePaths: product.exportIncludePaths
+    }
+}

@@ -1,6 +1,6 @@
 import qbs
-import GccUtl
-import QbsUtl
+//import GccUtl
+//import QbsUtl
 
 Product {
     name: "SpdLog"
@@ -11,8 +11,9 @@ Product {
 
     Depends { name: "cpp" }
 
-    cpp.archiverName: GccUtl.ar(cpp.toolchainPathPrefix)
+    //cpp.archiverName: GccUtl.ar(cpp.toolchainPathPrefix)
     cpp.defines: project.cppDefines
+    cpp.cxxFlags: project.cxxFlags
     cpp.cxxLanguageVersion: project.cxxLanguageVersion
 
     property var exportIncludePaths: [

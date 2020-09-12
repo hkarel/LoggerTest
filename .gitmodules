@@ -10,3 +10,6 @@
 [submodule "src/yaml"]
 	path = src/yaml
 	url = https://github.com/hkarel/yaml-cpp.git
+[submodule "src/g3log/g3log"]
+	path = src/g3log/g3log
+	url = https://github.com/KjellKod/g3log.git
