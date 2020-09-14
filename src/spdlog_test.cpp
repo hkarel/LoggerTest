@@ -4,6 +4,9 @@
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
 //
 
+#include "params_test.h"
+#include "hw_monitor.h"
+
 //
 // bench.cpp : spdlog benchmarks
 //
@@ -27,68 +30,45 @@ using namespace std;
 using namespace std::chrono;
 using namespace spdlog;
 using namespace spdlog::sinks;
-//using namespace utils;
 
-namespace {
-int howmany = 5000000;
-int queue_size = std::min(howmany + 2, 500000);
-int threads = 4;
-int iters = 5;
-const char* log_file = "/tmp/spdlog-async.log"; // SSD
-//const char* log_file = "/mnt/storage/Downloads/spdlog-async.log"; // HDD
-
-} // namespace
 
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4996) // disable fopen warning under msvc
 #endif                          // _MSC_VER
 
-template<typename T>
-typename T::value_type sum(const T& elements)
-{
-    return std::accumulate(elements.begin(), elements.end(), typename T::value_type(0));
-}
+//int count_lines(const char *filename)
+//{
+//    int counter = 0;
+//    auto *infile = fopen(filename, "r");
+//    int ch;
+//    while (EOF != (ch = getc(infile)))
+//    {
+//        if ('\n' == ch)
+//            counter++;
+//    }
+//    fclose(infile);
 
-template<typename T>
-double average(const T& elements)
-{
-    double s = sum(elements);
-    return (s / elements.size());
-}
+//    return counter;
+//}
 
-int count_lines(const char *filename)
-{
-    int counter = 0;
-    auto *infile = fopen(filename, "r");
-    int ch;
-    while (EOF != (ch = getc(infile)))
-    {
-        if ('\n' == ch)
-            counter++;
-    }
-    fclose(infile);
-
-    return counter;
-}
-
-void verify_file(const char *filename, int expected_count)
-{
-    spdlog::info("Verifying {} to contain {:n} line..", filename, expected_count);
-    auto count = count_lines(filename);
-    if (count != expected_count)
-    {
-        spdlog::error("Test failed. {} has {:n} lines instead of {:n}", filename, count, expected_count);
-        exit(1);
-    }
-    spdlog::info("Line count OK ({:n})\n", count);
-}
+//void verify_file(const char *filename, int expected_count)
+//{
+//    spdlog::info("Verifying {} to contain {:n} line..", filename, expected_count);
+//    auto count = count_lines(filename);
+//    if (count != expected_count)
+//    {
+//        spdlog::error("Test failed. {} has {:n} lines instead of {:n}", filename, count, expected_count);
+//        exit(1);
+//    }
+//    spdlog::info("Line count OK ({:n})\n", count);
+//}
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-void thread_fun(std::shared_ptr<spdlog::logger> logger, int howmany)
+void thread_func(std::shared_ptr<spdlog::logger> logger, int howmany)
 {
     pid_t tid = (syscall(SYS_gettid));
     for (int i = 0; i < howmany; ++i)
@@ -98,47 +78,47 @@ void thread_fun(std::shared_ptr<spdlog::logger> logger, int howmany)
     }
 }
 
-void bench_mt(int howmany, std::shared_ptr<spdlog::logger> logger, int thread_count, double& delta)
+void bench_mt(std::shared_ptr<spdlog::logger> logger, const TestParams& params)
 {
-    using std::chrono::high_resolution_clock;
     vector<thread> threads;
-    auto start = high_resolution_clock::now();
+    int msgs_per_thread = params.howmany / params.threads;
+    int msgs_per_thread_mod = params.howmany % params.threads;
 
-    int msgs_per_thread = howmany / thread_count;
-    int msgs_per_thread_mod = howmany % thread_count;
-    for (int t = 0; t < thread_count; ++t)
+    for (int t = 0; t < params.threads; ++t)
     {
         if (t == 0 && msgs_per_thread_mod)
-            threads.push_back(std::thread(thread_fun, logger, msgs_per_thread + msgs_per_thread_mod));
+            threads.push_back(std::thread(thread_func, logger, msgs_per_thread + msgs_per_thread_mod));
         else
-            threads.push_back(std::thread(thread_fun, logger, msgs_per_thread));
+            threads.push_back(std::thread(thread_func, logger, msgs_per_thread));
     }
 
-    for (auto &t : threads)
-    {
+    for (auto& t : threads)
         t.join();
-    };
-
-    auto dlt = high_resolution_clock::now() - start;
-    delta = duration_cast<duration<double>>(dlt).count();
-    spdlog::info("Elapsed: {} secs\t {}/sec", delta, int(howmany / delta));
 }
 
-int main(int argc, char *argv[])
+void spdlog_test(const TestParams& params)
 {
+    using std::chrono::high_resolution_clock;
+
     try
     {
         //spdlog::set_pattern("[%^%l%$] %v");
         spdlog::set_pattern("%d.%m.%Y %H:%M:%S.%e %l %v");
 
+        HwMonitor hwmon;
+        atomic_bool test_complete = {false};
+
+        uint32_t start_mem = hwmon.procMem();
+
         auto slot_size = sizeof(spdlog::details::async_msg);
         spdlog::info("Spdlog speed test is running");
         spdlog::info("-------------------------------------------------");
-        spdlog::info("Messages     : {}", howmany);
-        spdlog::info("Threads      : {}", threads);
-        spdlog::info("Queue        : {} slots", queue_size);
-        spdlog::info("Queue memory : {} x {} = {} KB ", queue_size, slot_size, (queue_size * slot_size) / 1024);
-        spdlog::info("Total iters  : {}", iters);
+        spdlog::info("Messages     : {}", params.howmany);
+        spdlog::info("Threads      : {}", params.threads);
+        spdlog::info("Queue        : {} slots", params.queue_size);
+        spdlog::info("Queue memory : {} x {} = {} KB ", params.queue_size, slot_size, (params.queue_size * slot_size) / 1024);
+        spdlog::info("Total iters  : {}", params.iters);
+        spdlog::info("Start memory : {} MB", start_mem);
         spdlog::info("-------------------------------------------------");
 
         spdlog::info("");
@@ -146,23 +126,82 @@ int main(int argc, char *argv[])
         spdlog::info("Queue Overflow Policy: block");
         spdlog::info("*********************************");
 
-        std::vector<double> delta_times;
-        for (int i = 0; i < iters; ++i)
+        std::vector<double> delta1_times;
+        std::vector<double> delta2_times;
+
+        std::vector<uint32_t> cpu_load;
+        std::vector<uint32_t> mem_load;
+
+        auto hwmon_func = [&]()
         {
-            auto tp = std::make_shared<details::thread_pool>(queue_size, 8);
-            auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_file, true);
+            while (true)
+            {
+                hwmon.cpuLoad();
+                cpu_load.push_back(hwmon.procLoad());
+                mem_load.push_back(hwmon.procMem());
+                usleep(30*1000);
+                if (test_complete)
+                    break;
+            }
+        };
+        thread t1 {hwmon_func}; (void) t1;
+
+        for (int i = 0; i < params.iters; ++i)
+        {
+            auto start0 = high_resolution_clock::now();
+
+            auto tp = std::make_shared<details::thread_pool>(params.queue_size, 8);
+            auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(params.spdlog_file, true);
             file_sink->set_level(level::level_enum::trace);
-            auto logger = std::make_shared<async_logger>("", std::move(file_sink), std::move(tp), async_overflow_policy::block);
+            auto logger = std::make_shared<async_logger>("", file_sink, std::move(tp), async_overflow_policy::block);
             logger->set_level(level::level_enum::trace);
 
-            double delta;
-            bench_mt(howmany, logger, threads, delta);
+            auto dlt0 = high_resolution_clock::now() - start0;
+            double delta0 = duration_cast<duration<double>>(dlt0).count();
 
-            delta_times.push_back(delta);
+            uint32_t begin_alloc_mem = hwmon.procMem() - start_mem;
+
+            auto start = high_resolution_clock::now();
+
+            bench_mt(logger, params);
+
+            auto dlt1 = high_resolution_clock::now() - start;
+            double delta1 = duration_cast<duration<double>>(dlt1).count();
+
+            logger->flush();
+            logger.reset();
+
+            file_sink->flush();
+            file_sink.reset();
+
+            auto dlt2 = high_resolution_clock::now() - start;
+            double delta2 = duration_cast<duration<double>>(dlt2).count();
+
+            spdlog::info("Begin alloc mem   {} MB", begin_alloc_mem);
+            spdlog::info("Elapsed (create)  {} secs", delta0);
+            spdlog::info("Elapsed (logging) {} secs\t {}/sec", delta1, int(params.howmany / delta1));
+            spdlog::info("Elapsed (flush)   {} secs\t {}/sec", delta2, int(params.howmany / delta2));
+            spdlog::info("---");
+
+            delta1_times.push_back(delta1);
+            delta2_times.push_back(delta2);
+            sleep(1);
+
             // verify_file(filename, howmany);
         }
+        test_complete = true;
+        t1.join();
 
-        spdlog::info("Average time: {} sec", average(delta_times));
+        spdlog::info("Average (logging) {} secs", average(delta1_times));
+        spdlog::info("Average (flush)   {} secs", average(delta2_times));
+
+        uint32_t mem_max = max(mem_load) - start_mem;
+        uint32_t mem_average = average(mem_load) - start_mem;
+        spdlog::info("Memory usage max: {} MB; average: {} MB", mem_max, mem_average);
+
+        uint32_t cpu_max = max(cpu_load);
+        uint32_t cpu_average = average(cpu_load);
+        spdlog::info("CPU usage    max: {} %; average: {} %", cpu_max, cpu_average);
 
 //        spdlog::info("");
 //        spdlog::info("*********************************");
@@ -188,7 +227,5 @@ int main(int argc, char *argv[])
     {
         std::cerr << "Error: " << ex.what() << std::endl;
         perror("Last error");
-        return 1;
     }
-    return 0;
 }

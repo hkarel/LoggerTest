@@ -1,11 +1,9 @@
 import qbs
 import QbsUtl
-//import ProbExt
-//import qbs.File
 
 Product {
-    name: "SpdLog Test"
-    targetName: "spdlog-test"
+    name: "All Log Test"
+    targetName: "all-log-test"
     condition: true
 
     type: "application"
@@ -14,27 +12,35 @@ Product {
 
     Depends { name: "cpp" }
     Depends { name: "cppstdlib" }
+    Depends { name: "SharedLib" }
     Depends { name: "SpdLog" }
+    //Depends { name: "Qt"; submodules: ["core"] }
 
     cpp.defines: project.cppDefines
     cpp.cxxFlags: project.cxxFlags
     cpp.cxxLanguageVersion: project.cxxLanguageVersion
 
-    cpp.includePaths: [
-        //"./",
-        //"../",
-        "shared",
-    ]
+//    cpp.includePaths: [
+//        "./",
+//        "../",
+//    ]
 
     cpp.dynamicLibraries: [
         "pthread",
     ]
 
     files: [
-        "spdlog_main.cpp",
+        "alog_test.cpp",
         "spdlog_test.cpp",
+        "all_log_test.cpp",
         "hw_monitor.cpp",
         "hw_monitor.h",
         "params_test.h",
     ]
+
+//    property var test: {
+//        console.info("=== project.cudaVersion ===");
+//        console.info(agentProbe.cudaVersion);
+//    }
+
 }

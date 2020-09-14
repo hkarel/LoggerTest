@@ -16,6 +16,7 @@ Product {
     Depends { name: "cppstdlib" }
     Depends { name: "SharedLib" }
     //Depends { name: "Yaml" }
+    //Depends { name: "Qt"; submodules: ["core"] }
 
     cpp.defines: project.cppDefines
     cpp.cxxFlags: project.cxxFlags
@@ -31,7 +32,11 @@ Product {
     ]
 
     files: [
+        "alog_main.cpp",
         "alog_test.cpp",
+        "hw_monitor.cpp",
+        "hw_monitor.h",
+        "params_test.h",
     ]
 
 //    property var test: {

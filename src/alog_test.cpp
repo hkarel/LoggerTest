@@ -3,12 +3,14 @@
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
 //
 
-#include "shared/steady_timer.h"
-#include "shared/utils.h"
+#include "params_test.h"
+#include "hw_monitor.h"
+
 #include "shared/logger/logger.h"
 #include "shared/logger/format.h"
-#include <signal.h>
 
+#include <signal.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <atomic>
 #include <thread>
@@ -24,16 +26,7 @@
 using namespace std;
 using namespace std::chrono;
 
-namespace  {
-int howmany = 5000000;
-int threads = 4;
-int iters = 5;
-bool format_func = true;
-const char* log_file = "/tmp/alog-async.log"; // SSD
-//const char* log_file = "/mnt/storage/Downloads/alog-async.log"; // HDD
-} // namespace
-
-void thread_fun(int howmany)
+void thread_func(int howmany, bool format_func)
 {
     for (int i = 0; i < howmany; ++i)
     {
@@ -45,36 +38,28 @@ void thread_fun(int howmany)
     }
 }
 
-void bench_mt(int howmany, int thread_count, double& delta)
+void bench_mt(const TestParams& params)
 {
-    using std::chrono::high_resolution_clock;
     vector<thread> threads;
-    auto start = high_resolution_clock::now();
+    int msgs_per_thread = params.howmany / params.threads;
+    int msgs_per_thread_mod = params.howmany % params.threads;
 
-    int msgs_per_thread = howmany / thread_count;
-    int msgs_per_thread_mod = howmany % thread_count;
-    for (int t = 0; t < thread_count; ++t)
+    for (int t = 0; t < params.threads; ++t)
     {
         if (t == 0 && msgs_per_thread_mod)
-            threads.push_back(std::thread(thread_fun, msgs_per_thread + msgs_per_thread_mod));
+            threads.push_back(std::thread(thread_func, msgs_per_thread + msgs_per_thread_mod, params.format_func));
         else
-            threads.push_back(std::thread(thread_fun, msgs_per_thread));
+            threads.push_back(std::thread(thread_func, msgs_per_thread, params.format_func));
     }
 
-    for (auto &t : threads)
-    {
+    for (auto& t : threads)
         t.join();
-    };
-
-    auto dlt = high_resolution_clock::now() - start;
-    delta = duration_cast<duration<double>>(dlt).count();
-
-    //spdlog::info("Elapsed: {} secs\t {:n}/sec", delta_d, int(howmany / delta_d));
-    log_info << log_format("Elapsed: %? secs; %?/sec", delta, int(howmany / delta));
 }
 
-int main(int argc, char* argv[])
+void alog_test(const TestParams& params)
 {
+    using std::chrono::high_resolution_clock;
+
     alog::logger().start();
     alog::logger().addSaverStdOut(alog::Level::Info, false);
 
@@ -92,22 +77,52 @@ int main(int argc, char* argv[])
     log_info << "ALog speed test is running";
     alog::logger().flush();
 
+    HwMonitor hwmon;
+    //size_t counter = 0;
+    atomic_bool test_complete = {false};
+
+    uint32_t start_mem = hwmon.procMem();
+
     log_info << log_format("-------------------------------------------------");
-    log_info << log_format("Messages     : %?", howmany);
-    log_info << log_format("Threads      : %?", threads);
-    log_info << log_format("Total iters  : %?", iters);
-    log_info << log_format("Total iters  : %?", iters);
-    log_info << log_format("Use format   : %?", format_func);
+    log_info << log_format("Messages     : %?"   , params.howmany);
+    log_info << log_format("Threads      : %?"   , params.threads);
+    log_info << log_format("Total iters  : %?"   , params.iters);
+    log_info << log_format("Total iters  : %?"   , params.iters);
+    log_info << log_format("Use format   : %?"   , params.format_func);
+    log_info << log_format("Start memory : %? MB", start_mem);
     log_info << log_format("-------------------------------------------------");
 
-    std::vector<double> delta_times;
-    for (int i = 0; i < iters; ++i)
+    std::vector<double> delta1_times;
+    std::vector<double> delta2_times;
+
+    std::vector<uint32_t> cpu_load;
+    std::vector<uint32_t> mem_load;
+
+//    uint32_t a1 = hwmon.cpuLoad();
+//    uint32_t a2 = hwmon.procLoad();
+
+    auto hwmon_func = [&]()
+    {
+        while (true)
+        {
+
+            hwmon.cpuLoad();
+            cpu_load.push_back(hwmon.procLoad());
+            mem_load.push_back(hwmon.procMem());
+            usleep(30*1000);
+            if (test_complete)
+                break;
+        }
+    };
+    thread t1 {hwmon_func}; (void) t1;
+
+    for (int i = 0; i < params.iters; ++i)
     {
         // Создаем дефолтный сэйвер для логгера
         bool logContinue = false;
         alog::Level logLevel = alog::Level::Debug2;
         alog::SaverPtr saver {new alog::SaverFile("default",
-                                                  log_file,
+                                                  params.alog_file,
                                                   logLevel,
                                                   logContinue)};
 
@@ -120,23 +135,48 @@ int main(int argc, char* argv[])
 
         alog::logger().addSaver(saver);
 
-        double delta;
-        bench_mt(howmany, threads, delta);
+        uint32_t begin_alloc_mem = hwmon.procMem() - start_mem;
 
-        delta_times.push_back(delta);
+        auto start = high_resolution_clock::now();
+
+        bench_mt(params);
+
+        auto dlt1 = high_resolution_clock::now() - start;
+        double delta1 = duration_cast<duration<double>>(dlt1).count();
 
         alog::logger().flush(3);
         alog::logger().waitingFlush();
-    }
 
-    log_info << log_format("Average time: %? sec", utl::average(delta_times));
+        auto dlt2 = high_resolution_clock::now() - start;
+        double delta2 = duration_cast<duration<double>>(dlt2).count();
+
+        log_info << log_format("Begin alloc mem   %? MB", begin_alloc_mem);
+        log_info << log_format("Elapsed (logging) %? secs; %?/sec", delta1, int(params.howmany / delta1));
+        log_info << log_format("Elapsed (flush)   %? secs; %?/sec", delta2, int(params.howmany / delta2));
+        log_info << "---";
+
+        delta1_times.push_back(delta1);
+        delta2_times.push_back(delta2);
+        sleep(1);
+    }
+    test_complete = true;
+    t1.join();
+
+    log_info << log_format("Average (logging) %? secs", average(delta1_times));
+    log_info << log_format("Average (flush)   %? secs", average(delta2_times));
+
+    uint32_t mem_max = max(mem_load) - start_mem;
+    uint32_t mem_average = average(mem_load) - start_mem;
+    log_info << log_format("Memory usage max: %? MB; average: %? MB", mem_max, mem_average);
+
+    uint32_t cpu_max = max(cpu_load);
+    uint32_t cpu_average = average(cpu_load);
+    log_info << log_format("CPU usage    max: %? %; average: %? %", cpu_max, cpu_average);
 
     log_info << "ALog test is stopped";
     alog::logger().flush();
     alog::logger().waitingFlush();
     alog::logger().stop();
-
-    return 0;
 }
 
 #undef log_error_m
