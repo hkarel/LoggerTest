@@ -13,8 +13,8 @@ struct TestParams
     int iters    = 5;
 
     // Disk system (SSD/HDD)
-    //std::string log_path = "/tmp";  // SSD
-    std::string log_path = "/mnt/storage/Downloads";  // HDD
+    std::string log_path = "/tmp";  // SSD
+    //std::string log_path = "/mnt/storage/Downloads";  // HDD
 
     //--- ALog params ---
     // Use formatting mode for log-messages

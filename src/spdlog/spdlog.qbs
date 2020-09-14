@@ -1,17 +1,12 @@
 import qbs
-//import GccUtl
-//import QbsUtl
 
 Product {
     name: "SpdLog"
     targetName: "spdlog"
 
     type: "staticlibrary"
-    //destinationDirectory: "./lib"
-
     Depends { name: "cpp" }
 
-    //cpp.archiverName: GccUtl.ar(cpp.toolchainPathPrefix)
     cpp.defines: project.cppDefines
     cpp.cxxFlags: project.cxxFlags
     cpp.cxxLanguageVersion: project.cxxLanguageVersion

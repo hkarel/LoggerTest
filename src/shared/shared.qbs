@@ -1,18 +1,14 @@
 import qbs
-//import GccUtl
-//import QbsUtl
 
 Product {
     name: "SharedLib"
     targetName: "shared"
 
     type: "staticlibrary"
-    //destinationDirectory: "./lib"
 
     Depends { name: "cpp" }
     //Depends { name: "Yaml" }
 
-    //cpp.archiverName: GccUtl.ar(cpp.toolchainPathPrefix)
     cpp.defines: project.cppDefines
     cpp.cxxFlags: project.cxxFlags //.concat(["-fPIC"])
     cpp.cxxLanguageVersion: project.cxxLanguageVersion

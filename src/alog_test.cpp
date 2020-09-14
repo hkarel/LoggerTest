@@ -26,7 +26,7 @@
 using namespace std;
 using namespace std::chrono;
 
-void thread_func(int howmany, bool format_func)
+static void thread_func(int howmany, bool format_func)
 {
     for (int i = 0; i < howmany; ++i)
     {
@@ -38,7 +38,7 @@ void thread_func(int howmany, bool format_func)
     }
 }
 
-void bench_mt(const TestParams& params)
+static void bench_mt(const TestParams& params)
 {
     vector<thread> threads;
     int msgs_per_thread = params.howmany / params.threads;
@@ -109,7 +109,7 @@ void alog_test(const TestParams& params)
             hwmon.cpuLoad();
             cpu_load.push_back(hwmon.procLoad());
             mem_load.push_back(hwmon.procMem());
-            usleep(30*1000);
+            usleep(20*1000);
             if (test_complete)
                 break;
         }
@@ -157,7 +157,8 @@ void alog_test(const TestParams& params)
 
         delta1_times.push_back(delta1);
         delta2_times.push_back(delta2);
-        sleep(1);
+
+        sleep(3);
     }
     test_complete = true;
     t1.join();

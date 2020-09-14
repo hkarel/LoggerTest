@@ -68,7 +68,7 @@ using namespace spdlog::sinks;
 #pragma warning(pop)
 #endif
 
-void thread_func(std::shared_ptr<spdlog::logger> logger, int howmany)
+static void thread_func(std::shared_ptr<spdlog::logger> logger, int howmany)
 {
     pid_t tid = (syscall(SYS_gettid));
     for (int i = 0; i < howmany; ++i)
@@ -78,7 +78,7 @@ void thread_func(std::shared_ptr<spdlog::logger> logger, int howmany)
     }
 }
 
-void bench_mt(std::shared_ptr<spdlog::logger> logger, const TestParams& params)
+static void bench_mt(std::shared_ptr<spdlog::logger> logger, const TestParams& params)
 {
     vector<thread> threads;
     int msgs_per_thread = params.howmany / params.threads;
@@ -139,7 +139,7 @@ void spdlog_test(const TestParams& params)
                 hwmon.cpuLoad();
                 cpu_load.push_back(hwmon.procLoad());
                 mem_load.push_back(hwmon.procMem());
-                usleep(30*1000);
+                usleep(20*1000);
                 if (test_complete)
                     break;
             }
@@ -185,7 +185,8 @@ void spdlog_test(const TestParams& params)
 
             delta1_times.push_back(delta1);
             delta2_times.push_back(delta2);
-            sleep(1);
+
+            sleep(3);
 
             // verify_file(filename, howmany);
         }

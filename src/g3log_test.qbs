@@ -1,9 +1,11 @@
 import qbs
 import QbsUtl
+//import ProbExt
+//import qbs.File
 
 Product {
-    name: "All Log Test"
-    targetName: "all-log-test"
+    name: "G3log Test"
+    targetName: "g3log-test"
     condition: true
 
     type: "application"
@@ -12,37 +14,27 @@ Product {
 
     Depends { name: "cpp" }
     Depends { name: "cppstdlib" }
-    Depends { name: "SharedLib" }
-    Depends { name: "SpdLog" }
     Depends { name: "G3log" }
-    //Depends { name: "Qt"; submodules: ["core"] }
 
     cpp.defines: project.cppDefines
     cpp.cxxFlags: project.cxxFlags
     cpp.cxxLanguageVersion: project.cxxLanguageVersion
 
-//    cpp.includePaths: [
-//        "./",
-//        "../",
-//    ]
+    cpp.includePaths: [
+        //"./",
+        //"../",
+        "shared",
+    ]
 
     cpp.dynamicLibraries: [
         "pthread",
     ]
 
     files: [
-        "alog_test.cpp",
+        "g3log_main.cpp",
         "g3log_test.cpp",
-        "spdlog_test.cpp",
-        "all_log_test.cpp",
         "hw_monitor.cpp",
         "hw_monitor.h",
         "params_test.h",
     ]
-
-//    property var test: {
-//        console.info("=== project.cudaVersion ===");
-//        console.info(agentProbe.cudaVersion);
-//    }
-
 }

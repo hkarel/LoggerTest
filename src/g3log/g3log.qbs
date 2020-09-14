@@ -1,16 +1,12 @@
 import qbs
 import qbs.File
 import qbs.TextFile
-//import GccUtl
-//import QbsUtl
 
 Product {
-    name: "g3log"
+    name: "G3log"
     targetName: "g3log"
 
     type: "staticlibrary"
-    //destinationDirectory: "./lib"
-
     Depends { name: "cpp" }
 
     Probe {
@@ -27,7 +23,6 @@ Product {
         }
     }
 
-    //cpp.archiverName: GccUtl.ar(cpp.toolchainPathPrefix)
     cpp.defines: project.cppDefines.concat([
         //"G3_LOG_FULL_FILENAME=1",
         "G3LOG_DEBUG=DEBUG",

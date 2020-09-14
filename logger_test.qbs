@@ -1,5 +1,5 @@
 import qbs
-import "qbs/imports/QbsUtl/qbsutl.js" as QbsUtl
+//import "qbs/imports/QbsUtl/qbsutl.js" as QbsUtl
 
 Project {
     name: "LoggerTest (Project)"
@@ -26,7 +26,7 @@ Project {
 
     property var cppDefines: {
         var def = [
-//            "VERSION_PROJECT=" + projectVersion[0],
+//            "VERSION_PROJECT=\"" + projectVersion[0] + "\"",
 //            "VERSION_PROJECT_MAJOR=" + projectVersion[1],
 //            "VERSION_PROJECT_MINOR=" + projectVersion[2],
 //            "VERSION_PROJECT_PATCH=" + projectVersion[3],
@@ -43,7 +43,6 @@ Project {
         "-ggdb3",
         "-Wall",
         "-Wextra",
-        //"-Wpedantic",
         "-Wdangling-else",
         "-Wno-unused-parameter",
         "-Wno-variadic-macros",
