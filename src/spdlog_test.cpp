@@ -106,8 +106,6 @@ void spdlog_test(const TestParams& params)
         spdlog::set_pattern("%d.%m.%Y %H:%M:%S.%e %l %v");
 
         HwMonitor hwmon;
-        atomic_bool test_complete = {false};
-
         uint32_t start_mem = hwmon.procMem();
 
         auto slot_size = sizeof(spdlog::details::async_msg);
@@ -129,25 +127,26 @@ void spdlog_test(const TestParams& params)
         std::vector<double> delta1_times;
         std::vector<double> delta2_times;
 
-        std::vector<uint32_t> cpu_load;
-        std::vector<uint32_t> mem_load;
-
-        auto hwmon_func = [&]()
-        {
-            while (true)
-            {
-                hwmon.cpuLoad();
-                cpu_load.push_back(hwmon.procLoad());
-                mem_load.push_back(hwmon.procMem());
-                usleep(20*1000);
-                if (test_complete)
-                    break;
-            }
-        };
-        thread t1 {hwmon_func}; (void) t1;
-
         for (int i = 0; i < params.iters; ++i)
         {
+            std::vector<uint32_t> cpu_load;
+            std::vector<uint32_t> mem_load;
+            atomic_bool test_complete = {false};
+
+            auto hwmon_func = [&]()
+            {
+                while (true)
+                {
+                    hwmon.cpuLoad();
+                    cpu_load.push_back(hwmon.procLoad());
+                    mem_load.push_back(hwmon.procMem());
+                    usleep(20*1000);
+                    if (test_complete)
+                        break;
+                }
+            };
+            thread t1 {hwmon_func}; (void) t1;
+
             auto start0 = high_resolution_clock::now();
 
             auto tp = std::make_shared<details::thread_pool>(params.queue_size, 8);
@@ -177,10 +176,22 @@ void spdlog_test(const TestParams& params)
             auto dlt2 = high_resolution_clock::now() - start;
             double delta2 = duration_cast<duration<double>>(dlt2).count();
 
+            test_complete = true;
+            t1.join();
+
             spdlog::info("Begin alloc mem   {} MB", begin_alloc_mem);
             spdlog::info("Elapsed (create)  {} secs", delta0);
             spdlog::info("Elapsed (logging) {} secs\t {}/sec", delta1, int(params.howmany / delta1));
             spdlog::info("Elapsed (flush)   {} secs\t {}/sec", delta2, int(params.howmany / delta2));
+
+            uint32_t mem_max = max(mem_load) - start_mem;
+            uint32_t mem_average = average(mem_load) - start_mem;
+            spdlog::info("Memory usage max: {} MB; average: {} MB", mem_max, mem_average);
+
+            uint32_t cpu_max = max(cpu_load);
+            uint32_t cpu_average = average(cpu_load);
+            spdlog::info("CPU usage    max: {} %; average: {} %", cpu_max, cpu_average);
+
             spdlog::info("---");
 
             delta1_times.push_back(delta1);
@@ -190,19 +201,9 @@ void spdlog_test(const TestParams& params)
 
             // verify_file(filename, howmany);
         }
-        test_complete = true;
-        t1.join();
 
         spdlog::info("Average (logging) {} secs", average(delta1_times));
         spdlog::info("Average (flush)   {} secs", average(delta2_times));
-
-        uint32_t mem_max = max(mem_load) - start_mem;
-        uint32_t mem_average = average(mem_load) - start_mem;
-        spdlog::info("Memory usage max: {} MB; average: {} MB", mem_max, mem_average);
-
-        uint32_t cpu_max = max(cpu_load);
-        uint32_t cpu_average = average(cpu_load);
-        spdlog::info("CPU usage    max: {} %; average: {} %", cpu_max, cpu_average);
 
 //        spdlog::info("");
 //        spdlog::info("*********************************");
@@ -221,7 +222,7 @@ void spdlog_test(const TestParams& params)
 //            bench_mt(howmany, std::move(logger), threads);
 //        }
 
-        spdlog::info("Spdlog test is stopped");
+        spdlog::info("Spdlog test is stopped\n");
         spdlog::shutdown();
     }
     catch (std::exception &ex)

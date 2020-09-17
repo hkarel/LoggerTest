@@ -61,7 +61,8 @@ void alog_test(const TestParams& params)
     using std::chrono::high_resolution_clock;
 
     alog::logger().start();
-    alog::logger().addSaverStdOut(alog::Level::Info, false);
+    //alog::logger().addSaverStdOut(alog::Level::Info, false);
+    alog::logger().addSaverStdOut(alog::Level::Debug2, false);
 
     // Создание фильтра для stdout-сэйвера
     {
@@ -78,9 +79,6 @@ void alog_test(const TestParams& params)
     alog::logger().flush();
 
     HwMonitor hwmon;
-    //size_t counter = 0;
-    atomic_bool test_complete = {false};
-
     uint32_t start_mem = hwmon.procMem();
 
     log_info << log_format("-------------------------------------------------");
@@ -92,32 +90,32 @@ void alog_test(const TestParams& params)
     log_info << log_format("Start memory : %? MB", start_mem);
     log_info << log_format("-------------------------------------------------");
 
+    alog::logger().flush();
+    alog::logger().waitingFlush();
+
     std::vector<double> delta1_times;
     std::vector<double> delta2_times;
 
-    std::vector<uint32_t> cpu_load;
-    std::vector<uint32_t> mem_load;
-
-//    uint32_t a1 = hwmon.cpuLoad();
-//    uint32_t a2 = hwmon.procLoad();
-
-    auto hwmon_func = [&]()
-    {
-        while (true)
-        {
-
-            hwmon.cpuLoad();
-            cpu_load.push_back(hwmon.procLoad());
-            mem_load.push_back(hwmon.procMem());
-            usleep(20*1000);
-            if (test_complete)
-                break;
-        }
-    };
-    thread t1 {hwmon_func}; (void) t1;
-
     for (int i = 0; i < params.iters; ++i)
     {
+        std::vector<uint32_t> cpu_load;
+        std::vector<uint32_t> mem_load;
+        atomic_bool test_complete = {false};
+
+        auto hwmon_func = [&]()
+        {
+            while (true)
+            {
+                hwmon.cpuLoad();
+                cpu_load.push_back(hwmon.procLoad());
+                mem_load.push_back(hwmon.procMem());
+                usleep(20*1000);
+                if (test_complete)
+                    break;
+            }
+        };
+        thread t1 {hwmon_func}; (void) t1;
+
         // Создаем дефолтный сэйвер для логгера
         bool logContinue = false;
         alog::Level logLevel = alog::Level::Debug2;
@@ -139,6 +137,14 @@ void alog_test(const TestParams& params)
 
         auto start = high_resolution_clock::now();
 
+        /**
+          Не отключаем сейвер вывода в консоль, пусть в тесте работает механизм
+          фильтрации сообщений по имени модуля. Показатели  теста  будут  хуже,
+          но такой вариант ближе к обычному режиму работы логгера
+        */
+        //if (alog::SaverPtr saver = alog::logger().findSaver("stdout"))
+        //    saver->setActive(false);
+
         bench_mt(params);
 
         auto dlt1 = high_resolution_clock::now() - start;
@@ -150,9 +156,24 @@ void alog_test(const TestParams& params)
         auto dlt2 = high_resolution_clock::now() - start;
         double delta2 = duration_cast<duration<double>>(dlt2).count();
 
+        //if (alog::SaverPtr saver = alog::logger().findSaver("stdout"))
+        //    saver->setActive(true);
+
+        test_complete = true;
+        t1.join();
+
         log_info << log_format("Begin alloc mem   %? MB", begin_alloc_mem);
         log_info << log_format("Elapsed (logging) %? secs; %?/sec", delta1, int(params.howmany / delta1));
         log_info << log_format("Elapsed (flush)   %? secs; %?/sec", delta2, int(params.howmany / delta2));
+
+        uint32_t mem_max = max(mem_load) - start_mem;
+        uint32_t mem_average = average(mem_load) - start_mem;
+        log_info << log_format("Memory usage max: %? MB; average: %? MB", mem_max, mem_average);
+
+        uint32_t cpu_max = max(cpu_load);
+        uint32_t cpu_average = average(cpu_load);
+        log_info << log_format("CPU usage    max: %? %; average: %? %", cpu_max, cpu_average);
+
         log_info << "---";
 
         delta1_times.push_back(delta1);
@@ -160,21 +181,11 @@ void alog_test(const TestParams& params)
 
         sleep(3);
     }
-    test_complete = true;
-    t1.join();
 
     log_info << log_format("Average (logging) %? secs", average(delta1_times));
     log_info << log_format("Average (flush)   %? secs", average(delta2_times));
 
-    uint32_t mem_max = max(mem_load) - start_mem;
-    uint32_t mem_average = average(mem_load) - start_mem;
-    log_info << log_format("Memory usage max: %? MB; average: %? MB", mem_max, mem_average);
-
-    uint32_t cpu_max = max(cpu_load);
-    uint32_t cpu_average = average(cpu_load);
-    log_info << log_format("CPU usage    max: %? %; average: %? %", cpu_max, cpu_average);
-
-    log_info << "ALog test is stopped";
+    log_info << "ALog test is stopped\n";
     alog::logger().flush();
     alog::logger().waitingFlush();
     alog::logger().stop();

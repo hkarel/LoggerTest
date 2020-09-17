@@ -61,8 +61,6 @@ void g3log_test(const TestParams& params)
     using std::chrono::high_resolution_clock;
 
     HwMonitor hwmon;
-    atomic_bool test_complete = {false};
-
     uint32_t start_mem = hwmon.procMem();
 
     std::cout << "G3log speed test is running\n";
@@ -77,25 +75,28 @@ void g3log_test(const TestParams& params)
     std::vector<double> delta1_times;
     std::vector<double> delta2_times;
 
-    std::vector<uint32_t> cpu_load;
-    std::vector<uint32_t> mem_load;
-
-    auto hwmon_func = [&]()
-    {
-        while (true)
-        {
-            hwmon.cpuLoad();
-            cpu_load.push_back(hwmon.procLoad());
-            mem_load.push_back(hwmon.procMem());
-            usleep(20*1000);
-            if (test_complete)
-                break;
-        }
-    };
-    thread t1 {hwmon_func}; (void) t1;
 
     for (int i = 0; i < params.iters; ++i)
     {
+        std::vector<uint32_t> cpu_load;
+        std::vector<uint32_t> mem_load;
+        atomic_bool test_complete = {false};
+
+        auto hwmon_func = [&]()
+        {
+            while (true)
+            {
+                hwmon.cpuLoad();
+                cpu_load.push_back(hwmon.procLoad());
+                mem_load.push_back(hwmon.procMem());
+                usleep(20*1000);
+                if (test_complete)
+                    break;
+            }
+        };
+        thread t1 {hwmon_func}; (void) t1;
+
+
         auto start0 = high_resolution_clock::now();
 
         std::unique_ptr<LogWorker> logworker {LogWorker::createLogWorker()};
@@ -137,10 +138,22 @@ void g3log_test(const TestParams& params)
         auto dlt2 = high_resolution_clock::now() - start;
         double delta2 = duration_cast<duration<double>>(dlt2).count();
 
+        test_complete = true;
+        t1.join();
+
         std::cout << "Begin alloc mem   " << begin_alloc_mem << " MB\n";
         std::cout << "Elapsed (create)  " << delta0 << " secs\n";
         std::cout << "Elapsed (logging) " << delta1 << " secs\t " << int(params.howmany / delta1) << "/sen\n";
         std::cout << "Elapsed (flush)   " << delta2 << " secs\t " << int(params.howmany / delta2) << "/sec\n";
+
+        uint32_t mem_max = max(mem_load) - start_mem;
+        uint32_t mem_average = average(mem_load) - start_mem;
+        std::cout << "Memory usage max: " << mem_max << " MB; average: " << mem_average << " MB\n";
+
+        uint32_t cpu_max = max(cpu_load);
+        uint32_t cpu_average = average(cpu_load);
+        std::cout << "CPU usage    max: " << cpu_max << " %; average: " << cpu_average << " %\n";
+
         std::cout << "---\n";
         std::cout.flush();
 
@@ -149,19 +162,9 @@ void g3log_test(const TestParams& params)
 
         sleep(3);
     }
-    test_complete = true;
-    t1.join();
 
     std::cout << "Average (logging) " << average(delta1_times) << " secs\n";
     std::cout << "Average (flush)   " << average(delta2_times) << " secs\n";
 
-    uint32_t mem_max = max(mem_load) - start_mem;
-    uint32_t mem_average = average(mem_load) - start_mem;
-    std::cout << "Memory usage max: " << mem_max << " MB; average: " << mem_average << " MB\n";
-
-    uint32_t cpu_max = max(cpu_load);
-    uint32_t cpu_average = average(cpu_load);
-    std::cout << "CPU usage    max: " << cpu_max << " %; average: " << cpu_average << " %\n";
-
-    std::cout << "G3log test is stopped\n";
+    std::cout << "G3log test is stopped\n\n";
 }
