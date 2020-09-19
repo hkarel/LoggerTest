@@ -53,6 +53,7 @@ Project {
         "src/shared/shared.qbs",
         "src/spdlog/spdlog.qbs",
         "src/g3log/g3log.qbs",
+        "src/p7/p7.qbs",
         //"src/yaml/yaml.qbs",
         "src/tests.qbs",
     ]
