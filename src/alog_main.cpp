@@ -5,7 +5,7 @@
 
 #include "params_test.h"
 
-void alog_test(const TestParams& params);
+void alog_test(const TestParams&);
 
 int main(int /*argc*/, char** /*argv[]*/)
 {

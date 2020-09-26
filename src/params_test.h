@@ -21,6 +21,12 @@ struct TestParams
     bool format_func = true;
     std::string alog_file = {log_path + "/alog-async.log"};
 
+    //--- P7 Log params ---
+    //int pool_size = 1024; // 1MB memory for buffers
+    int pool_size = 1024*1024;
+    std::string p7bin_file = {log_path + "/p7bin-async.log"};
+    std::string p7txt_file = {log_path + "/p7txt-async.log"};
+
     //--- SpdLog params ---
     //int queue_size = {std::min(howmany + 2, 500000)};
     int queue_size = {std::min(howmany + 2, 5000000)};

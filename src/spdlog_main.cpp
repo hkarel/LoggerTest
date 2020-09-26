@@ -6,7 +6,7 @@
 
 #include "params_test.h"
 
-void spdlog_test(const TestParams& params);
+void spdlog_test(const TestParams&);
 
 int main(int /*argc*/, char** /*argv[]*/)
 {
