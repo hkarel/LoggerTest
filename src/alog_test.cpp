@@ -85,7 +85,6 @@ void alog_test(const TestParams& params)
     log_info << log_format("Messages     : %?"   , params.howmany);
     log_info << log_format("Threads      : %?"   , params.threads);
     log_info << log_format("Total iters  : %?"   , params.iters);
-    log_info << log_format("Total iters  : %?"   , params.iters);
     log_info << log_format("Use format   : %?"   , params.format_func);
     log_info << log_format("Start memory : %? MB", start_mem);
     log_info << log_format("-------------------------------------------------");

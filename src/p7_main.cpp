@@ -12,7 +12,7 @@ int main(int /*argc*/, char** /*argv[]*/)
 {
     TestParams params;
     p7_test(params, false);
-    p7_test(params, true);
+    //p7_test(params, true);
 
     return 0;
 }

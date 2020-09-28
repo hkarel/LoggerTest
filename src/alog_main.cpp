@@ -10,6 +10,8 @@ void alog_test(const TestParams&);
 int main(int /*argc*/, char** /*argv[]*/)
 {
     TestParams params;
+    //params.threads = 1;
+
     alog_test(params);
 
     return 0;
