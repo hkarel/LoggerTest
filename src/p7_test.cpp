@@ -69,6 +69,9 @@ void p7_test(const TestParams& params, bool text_output)
     std::vector<double> delta1_times;
     std::vector<double> delta2_times;
 
+    std::vector<int> count1;
+    std::vector<int> count2;
+
     IP7_Client        *l_pClient = 0;
     IP7_Trace         *l_pTrace  = 0;
     IP7_Trace::hModule l_hModule = 0;
@@ -146,10 +149,13 @@ void p7_test(const TestParams& params, bool text_output)
         test_complete = true;
         t1.join();
 
+        int cnt1 = int(params.howmany / delta1);
+        int cnt2 = int(params.howmany / delta2);
+
         std::cout << "Begin alloc mem   " << begin_alloc_mem << " MB\n";
         std::cout << "Elapsed (create)  " << delta0 << " secs\n";
-        std::cout << "Elapsed (logging) " << delta1 << " secs\t " << int(params.howmany / delta1) << "/sen\n";
-        std::cout << "Elapsed (flush)   " << delta2 << " secs\t " << int(params.howmany / delta2) << "/sec\n";
+        std::cout << "Elapsed (logging) " << delta1 << " secs\t " << cnt1 << "/sen\n";
+        std::cout << "Elapsed (flush)   " << delta2 << " secs\t " << cnt2 << "/sec\n";
 
         uint32_t mem_max = max(mem_load) - start_mem;
         uint32_t mem_average = average(mem_load) - start_mem;
@@ -165,11 +171,14 @@ void p7_test(const TestParams& params, bool text_output)
         delta1_times.push_back(delta1);
         delta2_times.push_back(delta2);
 
+        count1.push_back(cnt1);
+        count2.push_back(cnt2);
+
         sleep(3);
     }
 
-    std::cout << "Average (logging) " << average(delta1_times) << " secs\n";
-    std::cout << "Average (flush)   " << average(delta2_times) << " secs\n";
+    std::cout << "Average (logging) " << average(delta1_times) << " secs\t "<< int(average(count1)) << "/sec\n";
+    std::cout << "Average (flush)   " << average(delta2_times) << " secs\t "<< int(average(count2)) << "/sec\n";
 
     std::cout << "P7 test is stopped\n\n";
 }

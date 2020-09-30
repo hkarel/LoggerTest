@@ -95,6 +95,9 @@ void alog_test(const TestParams& params)
     std::vector<double> delta1_times;
     std::vector<double> delta2_times;
 
+    std::vector<int> count1;
+    std::vector<int> count2;
+
     for (int i = 0; i < params.iters; ++i)
     {
         std::vector<uint32_t> cpu_load;
@@ -161,9 +164,12 @@ void alog_test(const TestParams& params)
         test_complete = true;
         t1.join();
 
+        int cnt1 = int(params.howmany / delta1);
+        int cnt2 = int(params.howmany / delta2);
+
         log_info << log_format("Begin alloc mem   %? MB", begin_alloc_mem);
-        log_info << log_format("Elapsed (logging) %? secs; %?/sec", delta1, int(params.howmany / delta1));
-        log_info << log_format("Elapsed (flush)   %? secs; %?/sec", delta2, int(params.howmany / delta2));
+        log_info << log_format("Elapsed (logging) %? secs; %?/sec", delta1, cnt1);
+        log_info << log_format("Elapsed (flush)   %? secs; %?/sec", delta2, cnt2);
 
         uint32_t mem_max = max(mem_load) - start_mem;
         uint32_t mem_average = average(mem_load) - start_mem;
@@ -178,11 +184,14 @@ void alog_test(const TestParams& params)
         delta1_times.push_back(delta1);
         delta2_times.push_back(delta2);
 
+        count1.push_back(cnt1);
+        count2.push_back(cnt2);
+
         sleep(3);
     }
 
-    log_info << log_format("Average (logging) %? secs", average(delta1_times));
-    log_info << log_format("Average (flush)   %? secs", average(delta2_times));
+    log_info << log_format("Average (logging) %? secs\t %?/sec", average(delta1_times), int(average(count1)));
+    log_info << log_format("Average (flush)   %? secs\t %?/sec", average(delta2_times), int(average(count2)));
 
     log_info << "ALog test is stopped\n";
     alog::logger().flush();

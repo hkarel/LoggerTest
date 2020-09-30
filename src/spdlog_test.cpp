@@ -127,6 +127,9 @@ void spdlog_test(const TestParams& params)
         std::vector<double> delta1_times;
         std::vector<double> delta2_times;
 
+        std::vector<int> count1;
+        std::vector<int> count2;
+
         for (int i = 0; i < params.iters; ++i)
         {
             std::vector<uint32_t> cpu_load;
@@ -179,10 +182,13 @@ void spdlog_test(const TestParams& params)
             test_complete = true;
             t1.join();
 
+            int cnt1 = int(params.howmany / delta1);
+            int cnt2 = int(params.howmany / delta2);
+
             spdlog::info("Begin alloc mem   {} MB", begin_alloc_mem);
             spdlog::info("Elapsed (create)  {} secs", delta0);
-            spdlog::info("Elapsed (logging) {} secs\t {}/sec", delta1, int(params.howmany / delta1));
-            spdlog::info("Elapsed (flush)   {} secs\t {}/sec", delta2, int(params.howmany / delta2));
+            spdlog::info("Elapsed (logging) {} secs\t {}/sec", delta1, cnt1);
+            spdlog::info("Elapsed (flush)   {} secs\t {}/sec", delta2, cnt2);
 
             uint32_t mem_max = max(mem_load) - start_mem;
             uint32_t mem_average = average(mem_load) - start_mem;
@@ -197,13 +203,16 @@ void spdlog_test(const TestParams& params)
             delta1_times.push_back(delta1);
             delta2_times.push_back(delta2);
 
+            count1.push_back(cnt1);
+            count2.push_back(cnt2);
+
             sleep(3);
 
             // verify_file(filename, howmany);
         }
 
-        spdlog::info("Average (logging) {} secs", average(delta1_times));
-        spdlog::info("Average (flush)   {} secs", average(delta2_times));
+        spdlog::info("Average (logging) {} secs\t {}/sec", average(delta1_times), int(average(count1)));
+        spdlog::info("Average (flush)   {} secs\t {}/sec", average(delta2_times), int(average(count2)));
 
 //        spdlog::info("");
 //        spdlog::info("*********************************");

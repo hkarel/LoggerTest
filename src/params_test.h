@@ -29,7 +29,7 @@ struct TestParams
 
     //--- SpdLog params ---
     //int queue_size = {std::min(howmany + 2, 500000)};
-    int queue_size = {std::min(howmany + 2, 5000000)};
+    int queue_size = {std::min(howmany + 2, 3000000)};
     std::string spdlog_file = {log_path + "/spdlog-async.log"};
 };
 
