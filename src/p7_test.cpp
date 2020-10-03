@@ -55,14 +55,25 @@ void p7_test(const TestParams& params, bool text_output)
     HwMonitor hwmon;
     uint32_t start_mem = hwmon.procMem();
 
+    stringstream ss;
+    if (text_output)
+        ss << " /P7.Sink=FileTxt";
+    else
+        ss << " /P7.Sink=FileBin";
+
+    ss << " /P7.Dir=" << params.log_path;
+    ss << " /P7.Pool=" << params.pool_size;
+    string sArgs = ss.str();
+
     std::cout << "P7 speed test is running\n";
     std::cout << "-------------------------------------------------\n";
-    std::cout << "Messages     : " << params.howmany << std::endl;
-    std::cout << "Threads      : " << params.threads << std::endl;
-    std::cout << "Total iters  : " << params.iters << std::endl;
-    std::cout << "Pool size    : " << params.pool_size / 1024 << " MB\n";
-    std::cout << "Start memory : " << start_mem << " MB\n";
-    std::cout << "Output       : " << (text_output ? "text\n" : "binary\n");
+    std::cout << "Messages      : " << params.howmany << std::endl;
+    std::cout << "Threads       : " << params.threads << std::endl;
+    std::cout << "Total iters   : " << params.iters << std::endl;
+    std::cout << "Pool size     : " << params.pool_size / 1024 << " MB\n";
+    std::cout << "Start memory  : " << start_mem << " MB\n";
+    std::cout << "Output        : " << (text_output ? "text\n" : "binary\n");
+    std::cout << "Log arguments : " << sArgs << "\n";
     std::cout << "-------------------------------------------------\n";
     std::cout.flush();
 
@@ -99,16 +110,6 @@ void p7_test(const TestParams& params, bool text_output)
         high_resolution_clock::time_point start;
         double delta0, delta1, delta2;
         uint32_t begin_alloc_mem;
-
-        stringstream ss;
-        if (text_output)
-            ss << " /P7.Sink=FileTxt";
-        else
-            ss << " /P7.Sink=FileBin";
-
-        ss << " /P7.Dir=" << params.log_path;
-        ss << " /P7.Pool=" << params.pool_size;
-        string sArgs = ss.str();
 
         auto start0 = high_resolution_clock::now();
 
