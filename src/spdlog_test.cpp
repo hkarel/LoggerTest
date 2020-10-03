@@ -130,6 +130,8 @@ void spdlog_test(const TestParams& params)
         std::vector<int> count1;
         std::vector<int> count2;
 
+        bool first_test = true;
+
         for (int i = 0; i < params.iters; ++i)
         {
             std::vector<uint32_t> cpu_load;
@@ -185,7 +187,10 @@ void spdlog_test(const TestParams& params)
             int cnt1 = int(params.howmany / delta1);
             int cnt2 = int(params.howmany / delta2);
 
+            if (first_test) {
             spdlog::info("Begin alloc mem   {} MB", begin_alloc_mem);
+            first_test = false;
+            }
             spdlog::info("Elapsed (create)  {} secs", delta0);
             spdlog::info("Elapsed (logging) {} secs\t {}/sec", delta1, cnt1);
             spdlog::info("Elapsed (flush)   {} secs\t {}/sec", delta2, cnt2);

@@ -87,6 +87,8 @@ void p7_test(const TestParams& params, bool text_output)
     IP7_Trace         *l_pTrace  = 0;
     IP7_Trace::hModule l_hModule = 0;
 
+    bool first_test = true;
+
     for (int i = 0; i < params.iters; ++i)
     {
         std::vector<uint32_t> cpu_load;
@@ -153,7 +155,10 @@ void p7_test(const TestParams& params, bool text_output)
         int cnt1 = int(params.howmany / delta1);
         int cnt2 = int(params.howmany / delta2);
 
+        if (first_test) {
         std::cout << "Begin alloc mem   " << begin_alloc_mem << " MB\n";
+        first_test = false;
+        }
         std::cout << "Elapsed (create)  " << delta0 << " secs\n";
         std::cout << "Elapsed (logging) " << delta1 << " secs\t " << cnt1 << "/sen\n";
         std::cout << "Elapsed (flush)   " << delta2 << " secs\t " << cnt2 << "/sec\n";

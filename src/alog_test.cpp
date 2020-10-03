@@ -98,6 +98,8 @@ void alog_test(const TestParams& params)
     std::vector<int> count1;
     std::vector<int> count2;
 
+    bool first_test = true;
+
     for (int i = 0; i < params.iters; ++i)
     {
         std::vector<uint32_t> cpu_load;
@@ -167,7 +169,10 @@ void alog_test(const TestParams& params)
         int cnt1 = int(params.howmany / delta1);
         int cnt2 = int(params.howmany / delta2);
 
+        if (first_test) {
         log_info << log_format("Begin alloc mem   %? MB", begin_alloc_mem);
+        first_test = false;
+        }
         log_info << log_format("Elapsed (logging) %? secs; %?/sec", delta1, cnt1);
         log_info << log_format("Elapsed (flush)   %? secs; %?/sec", delta2, cnt2);
 

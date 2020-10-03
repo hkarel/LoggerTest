@@ -78,6 +78,8 @@ void g3log_test(const TestParams& params)
     std::vector<int> count1;
     std::vector<int> count2;
 
+    bool first_test = true;
+
     for (int i = 0; i < params.iters; ++i)
     {
         std::vector<uint32_t> cpu_load;
@@ -145,7 +147,10 @@ void g3log_test(const TestParams& params)
         int cnt1 = int(params.howmany / delta1);
         int cnt2 = int(params.howmany / delta2);
 
+        if (first_test) {
         std::cout << "Begin alloc mem   " << begin_alloc_mem << " MB\n";
+        first_test = false;
+        }
         std::cout << "Elapsed (create)  " << delta0 << " secs\n";
         std::cout << "Elapsed (logging) " << delta1 << " secs\t " << cnt1 << "/sen\n";
         std::cout << "Elapsed (flush)   " << delta2 << " secs\t " << cnt2 << "/sec\n";
