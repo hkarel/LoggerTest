@@ -43,13 +43,13 @@ static void bench_mt(const TestParams& params)
     int msgs_per_thread = params.howmany / params.threads;
     int msgs_per_thread_mod = params.howmany % params.threads;
 
-    for (int t = 0; t < params.threads; ++t)
-    {
-        if (t == 0 && msgs_per_thread_mod)
-            threads.push_back(std::thread(thread_func, msgs_per_thread + msgs_per_thread_mod));
-        else
-            threads.push_back(std::thread(thread_func, msgs_per_thread));
-    }
+    for (int t = 0; t < (params.threads - 1); ++t)
+        threads.push_back(std::thread(thread_func, msgs_per_thread));
+
+    if (msgs_per_thread_mod)
+        thread_func(msgs_per_thread + msgs_per_thread_mod);
+    else
+        thread_func(msgs_per_thread);
 
     for (auto& t : threads)
         t.join();
