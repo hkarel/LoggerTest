@@ -154,7 +154,7 @@ void spdlog_test(const TestParams& params)
 
             auto start0 = high_resolution_clock::now();
 
-            auto tp = std::make_shared<details::thread_pool>(params.queue_size, 8);
+            auto tp = std::make_shared<details::thread_pool>(params.queue_size, 4);
             auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(params.spdlog_file, true);
             file_sink->set_level(level::level_enum::trace);
             auto logger = std::make_shared<async_logger>("", file_sink, std::move(tp), async_overflow_policy::block);
