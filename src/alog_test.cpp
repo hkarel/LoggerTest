@@ -147,9 +147,19 @@ void alog_test(const TestParams& params)
         filter->setMode(alog::Filter::Mode::Include);
         filter->setFilteringNoNameModules(true);
         filter->addModule("LoggerTest");
+
+        //alog::FilterFilePtr filter2 {new alog::FilterFile};
+        //filter2->setName("filter2");
+        ////filter2->setMode(alog::Filter::Mode::Include);
+        //filter2->setMode(alog::Filter::Mode::Exclude);
+        //filter2->addFile("alog_test.cpp:162");
+
         saver->addFilter(filter);
+        //saver->addFilter(filter2);
 
         alog::logger().addSaver(saver);
+
+        log_debug2_m << "Begin test";
 
         uint32_t begin_alloc_mem = hwmon.procMem() - start_mem;
 
