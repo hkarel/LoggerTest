@@ -16,6 +16,9 @@ struct TestParams
     std::string log_path = "/tmp";  // SSD
     //std::string log_path = "/mnt/storage/Downloads";  // HDD
 
+    // Использовать структуру UserTest для вывода в лог (только для ALog и Quill)
+    bool user_test = {true};
+
     //--- ALog params ---
     // Use formatting mode for log-messages
     bool format_func = true;
@@ -31,6 +34,10 @@ struct TestParams
     //int queue_size = {std::min(howmany + 2, 500000)};
     int queue_size = {std::min(howmany + 2, 3000000)};
     std::string spdlog_file = {log_path + "/spdlog-async.log"};
+
+    //--- Quill params ---
+    // Формировать лог-сообщение в рабочем потоке
+    bool message_work_thread = {true};
 };
 
 template<typename T>

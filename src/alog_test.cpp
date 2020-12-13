@@ -35,15 +35,49 @@
 using namespace std;
 using namespace std::chrono;
 
-static void thread_func(int howmany, bool format_func)
+struct UserTestA
+{
+    int val1;
+    double val2;
+    std::string str100;
+
+    UserTestA() {
+        str100 = "1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890";
+    }
+};
+
+namespace alog {
+Line& operator<< (Line& line, const UserTestA& u)
+{
+    if (line.toLogger())
+    {
+        line << "Value1: " << u.val1
+             << " Value2: " << u.val2
+             << " String100: " << u.str100;
+    }
+    return line;
+}
+} // namespace alog
+
+static void thread_func(int howmany, const TestParams& params)
 {
     for (int i = 0; i < howmany; ++i)
     {
-        //logger->trace(u8"LWP{} [{}:{} LoggerTest] Hello logger: msg number {}", tid, "spdlog_test.cpp", __LINE__, i);
-        if (format_func)
-            log_debug2_m << log_format("Hello logger: msg number %?", i);
+        UserTestA u;
+        u.val1 = i;
+        u.val2 = i;
+        if (params.user_test)
+        {
+            log_debug2_m << "Hello logger. " << u;
+        }
         else
-            log_debug2_m << "Hello logger: msg number " << i;
+        {
+            //logger->trace(u8"LWP{} [{}:{} LoggerTest] Hello logger: msg number {}", tid, "spdlog_test.cpp", __LINE__, i);
+            if (params.format_func)
+                log_debug2_m << log_format("Hello logger: msg number %?", i);
+            else
+                log_debug2_m << "Hello logger: msg number " << i;
+        }
     }
 }
 
@@ -54,12 +88,12 @@ static void bench_mt(const TestParams& params)
     int msgs_per_thread_mod = params.howmany % params.threads;
 
     for (int t = 0; t < (params.threads - 1); ++t)
-        threads.push_back(std::thread(thread_func, msgs_per_thread, params.format_func));
+        threads.push_back(std::thread(thread_func, msgs_per_thread, params));
 
     if (msgs_per_thread_mod)
-        thread_func(msgs_per_thread + msgs_per_thread_mod, params.format_func);
+        thread_func(msgs_per_thread + msgs_per_thread_mod, params);
     else
-        thread_func(msgs_per_thread, params.format_func);
+        thread_func(msgs_per_thread, params);
 
     for (auto& t : threads)
         t.join();

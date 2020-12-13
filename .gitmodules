@@ -13,3 +13,6 @@
 [submodule "src/g3log/g3log"]
 	path = src/g3log/g3log
 	url = https://github.com/KjellKod/g3log.git
+[submodule "src/quill/quill"]
+	path = src/quill/quill
+	url = https://github.com/odygrd/quill.git
