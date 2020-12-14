@@ -1,7 +1,5 @@
 import qbs
 import QbsUtl
-//import ProbExt
-//import qbs.File
 
 Product {
     name: "ALog Test"
@@ -26,6 +24,11 @@ Product {
 //        "./",
 //        "../",
 //    ]
+
+    cpp.rpaths: QbsUtl.concatPaths(
+        cppstdlib.path,
+        "$ORIGIN/../lib"
+    )
 
     cpp.dynamicLibraries: [
         "pthread",

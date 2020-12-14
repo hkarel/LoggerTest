@@ -1,0 +1,91 @@
+#!/bin/bash
+
+set -u
+
+jobs=$(nproc)
+[ "$jobs" -gt 24 ] && jobs=$(($jobs - 6))
+
+mem_size=$(free -m | sed '2!d' | sed 's/  */ /g' | cut -d' ' -f2)
+[ "$mem_size" -lt 2100 ] && jobs=4
+echo "jobs: $jobs"
+
+rebuild=
+print_help=
+build_mode=release
+
+# Директория этого скрипта
+script_dir=$(dirname $(readlink -f $0))
+echo "script_dir: $script_dir"
+
+# Определение параметров host-системы
+if [ ! -e $script_dir/setup/os_detect ]; then
+    echo "Error: os_detect script not found"
+    exit 1
+fi
+. $script_dir/setup/os_detect
+
+
+function display_help()
+{
+cat << EOF
+Usage: ${0##*/} [OPTION]
+  -h  display this help and exit
+  -r  full rebuild of project
+  -d  build in 'debug' mode
+EOF
+}
+
+# Обработка позиционных параметров:
+#    http://wiki.bash-hackers.org/scripting/posparams
+while test -n ${1:-""}
+do
+    case "$1" in
+        -h)
+            print_help=yes
+            shift
+            ;;
+        -r)
+            rebuild=yes
+            shift
+            ;;
+        -d)
+            build_mode=debug
+            shift
+            ;;
+        -*)
+            echo "Error: Unknown option: $1" >&2
+            exit 1
+            ;;
+        *)  # No more options
+            break
+            ;;
+    esac
+done
+
+if [ "$print_help" = "yes" ]; then
+    display_help
+    exit 0
+fi
+
+git_branch=$(git status -b -s | head -n1 | sed 's/\./ /' | cut -d' ' -f2 | sed 's/\//_/g')
+build_config=${build_mode}-${git_branch}
+build_subdir=${build_config}
+build_dir=$script_dir/build/$build_subdir
+
+[ "$rebuild" = "yes"  ] && rm -rf $build_dir
+
+#
+# Сборка проекта
+#
+set -e
+qbs build \
+    --file logger_test.qbs \
+    --build-directory ./build \
+    --command-echo-mode command-line \
+    --jobs $jobs \
+    --no-install \
+    qbs.buildVariant:$build_mode \
+    config:$build_config \
+    profile:gcc84
+
+echo "Build is complete (configuration: ${build_config})"

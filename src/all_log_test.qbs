@@ -27,6 +27,11 @@ Product {
 //        "../",
 //    ]
 
+    cpp.rpaths: QbsUtl.concatPaths(
+        cppstdlib.path,
+        "$ORIGIN/../lib"
+    )
+
     cpp.dynamicLibraries: [
         "pthread", "rt",
     ]

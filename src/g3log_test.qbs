@@ -1,7 +1,5 @@
 import qbs
 import QbsUtl
-//import ProbExt
-//import qbs.File
 
 Product {
     name: "G3log Test"
@@ -25,6 +23,11 @@ Product {
         //"../",
         "shared",
     ]
+
+    cpp.rpaths: QbsUtl.concatPaths(
+        cppstdlib.path,
+        "$ORIGIN/../lib"
+    )
 
     cpp.dynamicLibraries: [
         "pthread",
