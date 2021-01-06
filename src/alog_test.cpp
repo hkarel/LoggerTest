@@ -9,6 +9,8 @@
 #include "shared/logger/logger.h"
 #include "shared/logger/format.h"
 
+#include "alog/distortneo_format.h"
+
 #include <signal.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -64,7 +66,52 @@ static void thread_func(int howmany, const TestParams& params)
         else
         {
             if (params.format_func)
-                log_debug2_m << log_format("Hello logger: msg number %?", i);
+            {
+//              1x
+//              >>> 1 - 1.334417 / 1.414407
+//              0.05655373594729096
+//              >>> 1 - 1.334764 / 1.387629
+//              0.03809735887618371
+
+                //log_debug2_m << log_format("Hello logger: msg number %?", i);
+                log_debug2_m << distortneo::format("Hello logger: msg number %?", i);
+
+
+//              ---
+//              2x
+//              >>> 1 - 1.414407 / 1.662179
+//              0.14906457126458705
+
+//                log_debug2_m << log_format("Hello logger: msg number Hello logger: msg number %?", i);
+//                //log_debug2_m << distortneo::format("Hello logger: msg number Hello logger: msg number %?", i);
+
+
+//              ---
+//              3x
+//              >>> 1 - 1.563662 / 1.892051
+//              0.17356244625541273
+
+//                log_debug2_m << log_format("Hello logger: msg number Hello logger: msg number Hello logger: msg number %?", i);
+//                //log_debug2_m << distortneo::format("Hello logger: msg number Hello logger: msg number Hello logger: msg number %?", i);
+
+
+//              ---
+//              4x
+//              >>> 1 - 1.579055 / 1.975792
+//              0.20079897074185937
+
+//                log_debug2_m << log_format("Hello logger: msg number Hello logger: msg number Hello logger: msg number Hello logger: msg number %?", i);
+//                //log_debug2_m << distortneo::format("Hello logger: msg number Hello logger: msg number Hello logger: msg number Hello logger: msg number %?", i);
+
+
+//              ---
+//              5x
+//              >>> 1 - 1.729778 / 2.299702
+//              0.24782515299808405
+
+//                log_debug2_m << log_format("Hello logger: msg number Hello logger: msg number Hello logger: msg number Hello logger: msg number Hello logger: msg number %?", i);
+//                //log_debug2_m << distortneo::format("Hello logger: msg number Hello logger: msg number Hello logger: msg number Hello logger: msg number Hello logger: msg number %?", i);
+            }
             else
                 log_debug2_m << "Hello logger: msg number " << i;
         }
@@ -107,6 +154,8 @@ void alog_test(const TestParams& params)
         if (alog::SaverPtr saver = alog::logger().findSaver("stdout"))
             saver->addFilter(filter);
     }
+
+    //break_point
 
 //    timeval tv;
 //    tv.tv_sec = 12547889;

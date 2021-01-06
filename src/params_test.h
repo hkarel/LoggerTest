@@ -22,7 +22,7 @@ struct TestParams
     //std::string log_path = "/mnt/storage/Downloads";  // HDD
 
     // Использовать структуру UserTest для вывода в лог (только для ALog и Quill)
-    bool user_test = {true};
+    bool user_test = {false};
 
     //--- ALog params ---
     // Use formatting mode for log-messages

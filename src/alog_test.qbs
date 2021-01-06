@@ -35,6 +35,7 @@ Product {
     ]
 
     files: [
+        "alog/distortneo_format.h",
         "alog_main.cpp",
         "alog_test.cpp",
         "hw_monitor.cpp",
