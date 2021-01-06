@@ -1,3 +1,8 @@
+//
+// Copyright(c) 2020 Pavel Karelin (hkarel), <hkarel@yandex.ru>
+// Distributed under the MIT License (http://opensource.org/licenses/MIT)
+//
+
 #include "params_test.h"
 #include "hw_monitor.h"
 
@@ -25,8 +30,6 @@ static void thread_func(IP7_Trace* l_pTrace, IP7_Trace::hModule l_hModule, int h
     for (int i = 0; i < howmany; ++i)
     {
         l_pTrace->P7_QTRACE(0, l_hModule, TM("Test trace message #%u"), i);
-        //logger->trace(u8"LWP{} [{}:{} LoggerTest] Hello logger: msg number {}", tid, "spdlog_test.cpp", __LINE__, i);
-        //spdlog::trace(u8"LWP{} [{}:{} LoggerTest] Hello logger: msg number {}", tid, "spdlog_test.cpp", __LINE__, i);
     }
 }
 

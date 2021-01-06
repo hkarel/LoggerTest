@@ -1,6 +1,5 @@
 //
-// Copyright(c) 2015 Gabi Melman.
-// Modified     2020 Pavel Karelin (hkarel), <hkarel@yandex.ru>
+// Copyright(c) 2020 Pavel Karelin (hkarel), <hkarel@yandex.ru>
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
 //
 

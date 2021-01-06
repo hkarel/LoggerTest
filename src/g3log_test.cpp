@@ -31,8 +31,6 @@ static void thread_func(int howmany)
     //pid_t tid = (syscall(SYS_gettid));
     for (int i = 0; i < howmany; ++i)
     {
-        //logger->trace(u8"LWP{} [{}:{} LoggerTest] Hello logger: msg number {}", tid, "spdlog_test.cpp", __LINE__, i);
-        //spdlog::trace(u8"LWP{} [{}:{} LoggerTest] Hello logger: msg number {}", tid, "spdlog_test.cpp", __LINE__, i);
         LOG(G3LOG_DEBUG) << "Hello logger: msg number " << i;
     }
 }

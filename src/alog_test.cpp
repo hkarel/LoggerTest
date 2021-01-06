@@ -16,15 +16,6 @@
 #include <thread>
 #include <vector>
 
-
-
-//#define log_error_m   alog::logger().error   (__FILE__, __func__, __LINE__, "LoggerTest")
-//#define log_warn_m    alog::logger().warn    (__FILE__, __func__, __LINE__, "LoggerTest")
-//#define log_info_m    alog::logger().info    (__FILE__, __func__, __LINE__, "LoggerTest")
-//#define log_verbose_m alog::logger().verbose (__FILE__, __func__, __LINE__, "LoggerTest")
-//#define log_debug_m   alog::logger().debug   (__FILE__, __func__, __LINE__, "LoggerTest")
-//#define log_debug2_m  alog::logger().debug2  (__FILE__, __func__, __LINE__, "LoggerTest")
-
 #define log_error_m   alog::logger().error   (alog_line_location, "LoggerTest")
 #define log_warn_m    alog::logger().warn    (alog_line_location, "LoggerTest")
 #define log_info_m    alog::logger().info    (alog_line_location, "LoggerTest")
@@ -72,7 +63,6 @@ static void thread_func(int howmany, const TestParams& params)
         }
         else
         {
-            //logger->trace(u8"LWP{} [{}:{} LoggerTest] Hello logger: msg number {}", tid, "spdlog_test.cpp", __LINE__, i);
             if (params.format_func)
                 log_debug2_m << log_format("Hello logger: msg number %?", i);
             else

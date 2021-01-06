@@ -1,8 +1,11 @@
+//
+// Copyright(c) 2020 Pavel Karelin (hkarel), <hkarel@yandex.ru>
+// Distributed under the MIT License (http://opensource.org/licenses/MIT)
+//
+
 #include "hw_monitor.h"
 
 #include "shared/break_point.h"
-//#include "shared/logger/logger.h"
-//#include "shared/qt/logger_operators.h"
 
 #include <unistd.h>
 #include <sstream>
@@ -10,13 +13,6 @@
 #include <string>
 #include <regex>
 #include <cmath>
-
-//#define log_error_m   alog::logger().error  (__FILE__, __func__, __LINE__, "Monitoring")
-//#define log_warn_m    alog::logger().warn   (__FILE__, __func__, __LINE__, "Monitoring")
-//#define log_info_m    alog::logger().info   (__FILE__, __func__, __LINE__, "Monitoring")
-//#define log_verbose_m alog::logger().verbose(__FILE__, __func__, __LINE__, "Monitoring")
-//#define log_debug_m   alog::logger().debug  (__FILE__, __func__, __LINE__, "Monitoring")
-//#define log_debug2_m  alog::logger().debug2 (__FILE__, __func__, __LINE__, "Monitoring")
 
 using namespace std;
 
