@@ -22,12 +22,12 @@ Product {
     ])
     cpp.cxxLanguageVersion: project.cxxLanguageVersion
 
-    property var exportIncludePaths: [
+    property var includePaths: [
         "v5.5/Headers",
         "v5.5/Shared",
         "v5.5/Shared/Platforms/Linux_x86",
     ]
-    cpp.includePaths: exportIncludePaths;
+    cpp.includePaths: includePaths;
 
     files: [
         "v5.5/Headers/*.h",
@@ -55,6 +55,6 @@ Product {
 
     Export {
         Depends { name: "cpp" }
-        cpp.includePaths: product.exportIncludePaths
+        cpp.includePaths: exportingProduct.includePaths
     }
 }

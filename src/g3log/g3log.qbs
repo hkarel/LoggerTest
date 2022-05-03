@@ -30,12 +30,12 @@ Product {
     cpp.cxxFlags: project.cxxFlags
     cpp.cxxLanguageVersion: project.cxxLanguageVersion
 
-    property var exportIncludePaths: [
+    property var includePaths: [
         "./g3log/src",
         "./g3log/src/g3log",
         project.buildDirectory,
     ]
-    cpp.includePaths: exportIncludePaths;
+    cpp.includePaths: includePaths;
 
     files: [
         "g3log/src/g3log/*.hpp",
@@ -50,6 +50,6 @@ Product {
 
     Export {
         Depends { name: "cpp" }
-        cpp.includePaths: product.exportIncludePaths
+        cpp.includePaths: exportingProduct.includePaths
     }
 }

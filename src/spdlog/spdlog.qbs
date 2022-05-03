@@ -11,11 +11,11 @@ Product {
     cpp.cxxFlags: project.cxxFlags
     cpp.cxxLanguageVersion: project.cxxLanguageVersion
 
-    property var exportIncludePaths: [
+    property var includePaths: [
         "./",
         "./spdlog/include",
     ]
-    cpp.includePaths: exportIncludePaths;
+    cpp.includePaths: includePaths;
 
     files: [
         "spdlog/include/spdlog/cfg/*.h",
@@ -38,6 +38,6 @@ Product {
 
     Export {
         Depends { name: "cpp" }
-        cpp.includePaths: product.exportIncludePaths
+        cpp.includePaths: exportingProduct.includePaths
     }
 }

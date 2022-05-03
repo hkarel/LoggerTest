@@ -13,11 +13,11 @@ Product {
     cpp.cxxFlags: project.cxxFlags //.concat(["-fPIC"])
     cpp.cxxLanguageVersion: project.cxxLanguageVersion
 
-    property var exportIncludePaths: [
+    property var includePaths: [
         "./",
         "./shared",
     ]
-    cpp.includePaths: exportIncludePaths;
+    cpp.includePaths: includePaths;
 
     files: [
         //"shared/logger/config.cpp",
@@ -43,6 +43,6 @@ Product {
 
     Export {
         Depends { name: "cpp" }
-        cpp.includePaths: product.exportIncludePaths
+        cpp.includePaths: exportingProduct.includePaths
     }
 }

@@ -4,7 +4,7 @@ import qbs
 Project {
     name: "LoggerTest (Project)"
 
-    minimumQbsVersion: "1.15.0"
+    minimumQbsVersion: "1.19.0"
     qbsSearchPaths: ["qbs"]
 
 //    readonly property var projectVersion: projectProbe.projectVersion
@@ -34,9 +34,6 @@ Project {
             "LOGGER_LESS_SNPRINTF",
         ];
 
-        if (qbs.buildVariant === "release")
-            def.push("NDEBUG");
-
         return def;
     }
 
@@ -48,7 +45,7 @@ Project {
         "-Wno-unused-parameter",
         "-Wno-variadic-macros",
     ]
-    property string cxxLanguageVersion: "c++14"
+    property string cxxLanguageVersion: "c++17"
 
     references: [
         "src/shared/shared.qbs",
